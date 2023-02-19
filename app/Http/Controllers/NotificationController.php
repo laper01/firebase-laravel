@@ -38,11 +38,11 @@ class NotificationController extends Controller
 
         $url = 'https://fcm.googleapis.com/fcm/send';
 
-        $reponse = Http::
-            withHeaders($headers)->
-            post($url, $data);
+        // $reponse = Http::
+        //     withHeaders($headers)->
+        //     post($url, $data);
 
-            dd($reponse);
+        //     dd($reponse);
     }
 
 

@@ -19,6 +19,7 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->text('device_token')->nullable(); // Add device token in users migration file.
             $table->rememberToken();
             $table->timestamps();
         });
