@@ -1,87 +1,77 @@
-@extends('layouts.app')
-@section('content')
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-        <button onclick="startFCM()" class="btn btn-danger btn-flat">Allow notification
-        </button>
-        <div class="card mt-3">
-          <div class="card-body">
-            @if (session('status'))
-              <div class="alert alert-success" role="alert">
-                {{ session('status') }}
-              </div>
-            @endif
-            <form action="{{ route('send.web-notification') }}" method="POST">
-              @csrf
-              <div class="form-group">
-                <label>Message Title</label>
-                <input type="text" class="form-control" name="title">
-              </div>
-              <div class="form-group">
-                <label>Message Body</label>
-                <textarea class="form-control" name="body"></textarea>
-              </div>
-              <button type="submit" class="btn btn-success btn-block">Send Notification</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<html>
+<title>Firebase Messaging Demo</title>
+<style>
+  div {
+    margin-bottom: 15px;
+  }
+</style>
+
+<body>
+  <div id="token"></div>
+  <div id="msg"></div>
+  <div id="notis"></div>
+  <div id="err"></div>
   <!-- The core Firebase JS SDK is always required and must be listed first -->
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.3.2/firebase.js"></script>
-  {{-- <script src="/js/firebase-messaging-sw.js"></script> --}}
+  <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/7.16.1/firebase-messaging.js"></script>
   <script>
+    MsgElem = document.getElementById('msg');
+    TokenElem = document.getElementById('token');
+    NotisElem = document.getElementById('notis');
+    ErrElem = document.getElementById('err');
+
+    // TODO: Replace firebaseConfig you get from Firebase Console
     var firebaseConfig = {
-      apiKey: "AIzaSyAPpw3_YVAe9KTH3H2DfYpMEyfjVp8qt20",
-      authDomain: "test-laravel-push-2df98.firebaseapp.com",
-      projectId: "test-laravel-push-2df98",
-      storageBucket: "test-laravel-push-2df98.appspot.com",
-      messagingSenderId: "643559813651",
-      appId: "1:643559813651:web:18f476e648f2842c0ac5e6"
+      apiKey: "AIzaSyBSomLWfzFMaP7LVwZCEX3mcpfMl5BYZjs",
+      authDomain: "test-push-notif-e03c6.firebaseapp.com",
+      projectId: "test-push-notif-e03c6",
+      storageBucket: "test-push-notif-e03c6.appspot.com",
+      messagingSenderId: "234028666070",
+      appId: "1:234028666070:web:ac311d121b154382324d77",
+      measurementId: "G-M1B5NKQR9J"
     };
     firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
 
-    function startFCM() {
-      messaging
-        .requestPermission()
-        .then(function() {
-          return messaging.getToken()
-        })
-        .then(function(response) {
-          $.ajaxSetup({
-            headers: {
-              'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-          });
-          $.ajax({
-            url: '{{ route('store.token') }}',
-            type: 'POST',
-            data: {
-              token: response
-            },
-            dataType: 'JSON',
-            success: function(response) {
-              alert('Token stored.');
-            },
-            error: function(error) {
-              alert(...error);
-            },
-          });
-        }).catch(function(error) {
-          alert(...error);
-        });
-    }
+    const messaging = firebase.messaging();
+    messaging
+      .requestPermission()
+      .then(function() {
+        MsgElem.innerHTML = 'Notification permission granted.';
+        console.log('Notification permission granted.ss');
+
+        // get the token in the form of promise
+        return messaging.getToken();
+      })
+      .then(function(token) {
+        TokenElem.innerHTML = 'Device token is : <br>' + token;
+      })
+      .catch(function(err) {
+        ErrElem.innerHTML = ErrElem.innerHTML + '; ' + err;
+        console.log('Unable to get permission to notify.', err);
+      });
+
+    let enableForegroundNotification = true;
     messaging.onMessage(function(payload) {
-      const title = payload.notification.title;
-      const options = {
-        body: payload.notification.body,
-        icon: payload.notification.icon,
-      };
-      new Notification(title, options);
+      console.log('Message received. ', payload);
+      NotisElem.innerHTML =
+        NotisElem.innerHTML + JSON.stringify(payload);
+
+      if (enableForegroundNotification) {
+        let notification = payload.notification;
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((registration) => {
+            registration[0].showNotification(notification.title, {
+              body: notification.body,
+              icon: "../images/touch/chrome-touch-icon-192x192.png",
+              vibrate: [200, 100, 200, 100, 200, 100, 200],
+              tag: "vibration-sample",
+            });
+          });
+      }
     });
   </script>
-@endsection
+</body>
+
+</html>

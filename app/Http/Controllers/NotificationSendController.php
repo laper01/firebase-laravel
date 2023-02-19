@@ -36,7 +36,7 @@ class NotificationSendController extends Controller
         $encodedData = json_encode($data);
 
         $headers = [
-            'Authorization: Bearer ' . $serverKey,
+            'Authorization: Bearer ya29.' . $serverKey,
             'Content-Type: application/json',
         ];
 
